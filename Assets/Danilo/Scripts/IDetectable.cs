@@ -4,8 +4,10 @@ namespace StealthGame.Stealth
 {
     public interface IDetectable
     {
+        // returns how loud the player is currently
         float GetNoiseLevel();
-        float GetVisibilityLevel();
+
+        // any detectable object must provide a reference to its own transform
         Transform GetTransform();
     }
 }

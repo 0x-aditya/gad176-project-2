@@ -12,6 +12,7 @@ namespace StealthGame.Stealth
 
         private Rigidbody rb;
 
+        // get the rigid body and if it not assigned display debug log warning
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
@@ -19,17 +20,12 @@ namespace StealthGame.Stealth
                 Debug.LogWarning("StealthStats not assigned to NoiseEmitter!");
         }
 
+        // calculate and returns noise level based on the player's movement
         public float GetNoiseLevel()
         {
             // Noise increases with movement speed
             float speed = rb.velocity.magnitude;
             return stealthStats.baseNoiseLevel * speed * movementNoiseMultiplier;
-        }
-
-        public float GetVisibilityLevel()
-        {
-            // Use this to simulate light/shadow in future
-            return stealthStats.baseVisibility;
         }
 
         public Transform GetTransform()

@@ -1,155 +1,94 @@
-using StealthGame.Stealth;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace StealthGame.AI
+namespace StealthGame.Enemies
 {
-    [RequireComponent(typeof(Rigidbody))]
-    public class Enemy : MonoBehaviour
+    public class Enemy : BaseEnemy
     {
-        [Header("General Settings")]
-        [SerializeField] private float moveSpeed = 3f;
-        [SerializeField] private Transform[] patrolPoints;
-        [SerializeField] private float waitTimeAtPoint = 2f;
+        [SerializeField] private string playerTag = "Player";
+        [SerializeField] private float detectionRange = 8f; // How far enemy can detect the player
+        [SerializeField] private float chaseSpeedMultiplier = 1.5f; // Move faster when chasing
 
-        [Header("Detection Settings")]
-        [SerializeField] private float viewDistance = 12f;
-        [SerializeField] private float fieldOfView = 90f;
-        [SerializeField] private float hearingRadius = 10f;
-
-        [Header("Chase Settings")]
-        [SerializeField] private float chaseTime = 5f;
-
-        private Rigidbody rb;
-        private int currentPoint = 0;
-        private float waitTimer = 0f;
-        private float chaseTimer = 0f;
+        private Transform playerTransform;
         private bool isChasing = false;
-        private Transform target;
 
-        private void Awake()
+        protected override void Start()
         {
-            rb = GetComponent<Rigidbody>();
-        }
+            base.Start();
 
-        private void FixedUpdate()
-        {
-            if (isChasing && target != null)
+            // find the player by player tag
+            GameObject playerObj = GameObject.FindGameObjectWithTag(playerTag);
+            if (playerObj != null)
             {
-                ChaseTarget();
-                chaseTimer -= Time.fixedDeltaTime;
-                if (chaseTimer <= 0f)
-                {
-                    isChasing = false;
-                    target = null;
-                }
+                playerTransform = playerObj.transform;
             }
             else
             {
-                Patrol();
+                Debug.LogWarning("there is no player on the scene");
             }
         }
 
-        private void Update()
+        protected override void Update()
         {
-            DetectPlayer();
-        }
+            if (playerTransform == null)
+                return;
 
-        private void Patrol()
-        {
-            if (patrolPoints.Length == 0) return;
+            // calculate distance to the player
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-            Transform destination = patrolPoints[currentPoint];
-            Vector3 dir = (destination.position - transform.position).normalized;
-            Vector3 move = dir * moveSpeed;
-
-            // Apply movement
-            rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
-
-            // Rotate smoothly
-            if (dir.magnitude > 0.1f)
+            // if the player gets detected by the enemy, chase them
+            if (distanceToPlayer <= detectionRange)
             {
-                Quaternion rot = Quaternion.LookRotation(dir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, rot, 5f * Time.deltaTime);
+                isChasing = true;
+                targetPosition = playerTransform.position;
             }
-
-            // Check if reached destination
-            if (Vector3.Distance(transform.position, destination.position) < 1f)
+            else
             {
-                rb.velocity = Vector3.zero;
-
-                waitTimer += Time.deltaTime;
-                if (waitTimer >= waitTimeAtPoint)
-                {
-                    currentPoint = (currentPoint + 1) % patrolPoints.Length;
-                    waitTimer = 0f;
-                }
+                // otherwise dont chase
+                isChasing = false;
             }
+
+            base.Update();
         }
 
-        private void ChaseTarget()
+        protected override void MoveTowardsTarget()
         {
-            Vector3 dir = (target.position - transform.position).normalized;
-            Vector3 move = dir * moveSpeed * 1.5f;
-
-            rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
-
-            if (dir.magnitude > 0.1f)
+            if (isChasing)
             {
-                Quaternion rot = Quaternion.LookRotation(dir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, rot, 5f * Time.deltaTime);
+                // while chasing the player, move towards them
+                Vector3 chaseDirection = (targetPosition - transform.position).normalized;
+                transform.position += chaseDirection * moveSpeed * chaseSpeedMultiplier * Time.deltaTime;
             }
-        }
-
-        private void DetectPlayer()
-        {
-            Collider[] hits = Physics.OverlapSphere(transform.position, hearingRadius);
-            foreach (Collider hit in hits)
+            else
             {
-                IDetectable detectable = hit.GetComponent<IDetectable>();
-                if (detectable == null) continue;
-
-                Vector3 toTarget = (detectable.GetTransform().position - transform.position);
-                float distance = toTarget.magnitude;
-                float angle = Vector3.Angle(transform.forward, toTarget.normalized);
-
-                // HEARING
-                if (distance <= detectable.GetNoiseLevel())
-                {
-                    StartChase(detectable.GetTransform());
-                    return;
-                }
-
-                // VISION
-                if (distance <= viewDistance && angle <= fieldOfView / 2f)
-                {
-                    if (Physics.Raycast(transform.position, toTarget.normalized, out RaycastHit ray, viewDistance))
-                    {
-                        if (ray.collider.GetComponent<IDetectable>() != null)
-                        {
-                            StartChase(detectable.GetTransform());
-                            return;
-                        }
-                    }
-                }
+                // otherwise just keep moving to the next target
+                base.MoveTowardsTarget();
             }
         }
 
-        private void StartChase(Transform player)
+        private void OnCollisionEnter(Collision collision)
         {
-            target = player;
-            isChasing = true;
-            chaseTimer = chaseTime;
-            Debug.Log($"Enemy started chasing {player.name}");
+            // if the enemy collides with something that doesnt have the player tag display debug log warning
+            if (collision == null)
+            {
+                Debug.LogWarning("enemy didn't collide with anything");
+                return;
+            }
+
+            // if the enemy collides with the player tag then do handle player caught
+            if (collision.gameObject.CompareTag(playerTag))
+            {
+                Debug.Log("looks like you got caught");
+                HandlePlayerCaught();
+            }
         }
 
-        private void OnDrawGizmosSelected()
+        private void HandlePlayerCaught()
         {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(transform.position, hearingRadius);
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, transform.position + transform.forward * viewDistance);
+            //when the player is caught time is frozen
+            Debug.Log("you lost, better luck next time");
+            Time.timeScale = 0f;
         }
     }
 }

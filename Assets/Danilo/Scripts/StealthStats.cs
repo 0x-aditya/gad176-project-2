@@ -5,8 +5,7 @@ namespace StealthGame.Stealth
     [CreateAssetMenu(fileName = "StealthStats", menuName = "Stealth/StealthStats")]
     public class StealthStats : ScriptableObject
     {
-        [Header("Stealth Values")]
-        public float baseVisibility = 5f;
+        // sets the noise level
         public float baseNoiseLevel = 10f;
     }
 }

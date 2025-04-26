@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class PlayerMovement : MonoBehaviour
+public class Player : MonoBehaviour
 {
-    [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 10f;
 
@@ -13,25 +12,26 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 movementInput;
     private Vector3 moveDirection;
 
+    // gets the rigid body and makes sure that there is a rigid body component on the player
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
         if (rb == null)
-            Debug.LogError("Rigidbody not found on PlayerMovement!");
+            Debug.LogError("rigid body is not found on the player");
     }
 
     private void Update()
     {
-        // Gather input (horizontal and vertical)
+        // gets the input from the keyboard
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
-        // Calculate movement direction using vector addition
+        // calculates movement direction
         movementInput = new Vector3(horizontal, 0f, vertical);
         moveDirection = movementInput.normalized;
 
-        // Rotate only if moving
+        // rotate only if the player is moving
         if (moveDirection.magnitude > 0.1f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
@@ -41,12 +41,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Apply physics-based movement (velocity)
+        // apply velocity
         rb.velocity = moveDirection * moveSpeed + new Vector3(0, rb.velocity.y, 0);
     }
 
     public Vector3 GetMoveDirection() => moveDirection;
 
+    // check if the player is moving
     public bool IsMoving()
     {
         return moveDirection.magnitude > 0.1f;
