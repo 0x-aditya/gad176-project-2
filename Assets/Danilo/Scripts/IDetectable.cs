@@ -11,4 +11,3 @@ namespace StealthGame.Stealth
         Transform GetTransform();
     }
 }
-
