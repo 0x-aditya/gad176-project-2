@@ -1,3 +1,4 @@
+using StealthGame.Stealth;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,23 +34,42 @@ namespace StealthGame.Enemies
         {
             if (playerTransform == null)
                 return;
-
-            // calculate distance to the player
-            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-
-            // if the player gets detected by the enemy, chase them
-            if (distanceToPlayer <= detectionRange)
-            {
-                isChasing = true;
-                targetPosition = playerTransform.position;
-            }
-            else
-            {
-                // otherwise dont chase
-                isChasing = false;
-            }
-
+            DetectPlayer();
             base.Update();
+        }
+
+        private void DetectPlayer()
+        {
+            isChasing = false; // Reset at the start of each check
+
+            // Get all colliders within the detection range
+            Collider[] hits = Physics.OverlapSphere(transform.position, detectionRange);
+
+            foreach (Collider hit in hits)
+            {
+                // If we find the player
+                if (hit.CompareTag(playerTag))
+                {
+                    // Check if the player has a NoiseEmitter component
+                    NoiseEmitter noiseEmitter = hit.GetComponent<NoiseEmitter>();
+
+                    if (noiseEmitter != null)
+                    {
+                        // If the noise level is greater than 0, start chasing
+                        if (noiseEmitter.GetNoiseLevel() > 0f)
+                        {
+                            isChasing = true;
+                            targetPosition = hit.transform.position;
+                        }
+                    }
+                    else
+                    {
+                        // If no NoiseEmitter is found, still start chasing
+                        isChasing = true;
+                        targetPosition = hit.transform.position;
+                    }
+                }
+            }
         }
 
         protected override void MoveTowardsTarget()
