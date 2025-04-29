@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;             // for Min/Max and First()
+using System.Linq;
 using UnityEngine;
 
 namespace Aditya.Scripts.PlayerController
@@ -14,7 +14,7 @@ namespace Aditya.Scripts.PlayerController
         {
             if (path == null || path.Count == 0)
             {
-                Debug.Log("No Path");
+                print("No Path");
                 return;
             }
 

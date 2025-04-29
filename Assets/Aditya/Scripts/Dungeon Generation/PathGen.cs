@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Aditya.Scripts.Enemies;
+using Aditya.Scripts.PlayerController;
 using UnityEngine;
 
 namespace Aditya.Scripts.Dungeon_Generation
@@ -15,10 +16,12 @@ namespace Aditya.Scripts.Dungeon_Generation
 
         private readonly List<GameObject> _instantiatedObjects = new List<GameObject>();
         private EnemySpawner _enemySpawner;
+        private PlayerAndObjectiveSpawner _playerAndObjectiveSpawner;
 
         private void Start()
         {
             _enemySpawner = GetComponent<EnemySpawner>();
+            _playerAndObjectiveSpawner = GetComponent<PlayerAndObjectiveSpawner>();
             MakeNewDungeon();
         }
 
@@ -61,6 +64,11 @@ namespace Aditya.Scripts.Dungeon_Generation
             if (_enemySpawner != null)
             {
                 _enemySpawner.SpawnEnemies(path);
+            }
+            // Spawn player and objective
+            if (_playerAndObjectiveSpawner != null)
+            {
+                _playerAndObjectiveSpawner.SpawnAtEnds(path);
             }
         }
 
