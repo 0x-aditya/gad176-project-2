@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Aditya.Scripts.Enemies;
 using UnityEngine;
 
 namespace Aditya.Scripts.Dungeon_Generation
@@ -13,9 +14,11 @@ namespace Aditya.Scripts.Dungeon_Generation
         [SerializeField] private Vector2Int startPosition = Vector2Int.zero;
 
         private readonly List<GameObject> _instantiatedObjects = new List<GameObject>();
+        private EnemySpawner _enemySpawner;
 
         private void Start()
         {
+            _enemySpawner = GetComponent<EnemySpawner>();
             MakeNewDungeon();
         }
 
@@ -52,6 +55,12 @@ namespace Aditya.Scripts.Dungeon_Generation
                 Vector3 worldPos = new Vector3(cell.x, 0f, cell.y);
                 GameObject wall = Instantiate(wallPrefab, worldPos, Quaternion.identity, transform);
                 _instantiatedObjects.Add(wall);
+            }
+            
+            // Spawn enemies
+            if (_enemySpawner != null)
+            {
+                _enemySpawner.SpawnEnemies(path);
             }
         }
 

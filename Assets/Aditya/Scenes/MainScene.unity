@@ -250,8 +250,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1035473576}
   - component: {fileID: 1035473578}
+  - component: {fileID: 1035473579}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -279,7 +280,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1035473574}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7624c96d43829a44927259b470438a7, type: 3}
   m_Name: 
@@ -291,6 +292,22 @@ MonoBehaviour:
   stepSize: 32
   complexity: 1000
   startPosition: {x: 0, y: 0}
+--- !u!114 &1035473579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1035473574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d20ea6aba9088f54aba7e89008227349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyPrefab: {fileID: 1708985436546260203, guid: 2642447615d5353469688ea10e373b6d,
+    type: 3}
+  spawnCount: 5
+  spawnHeight: 0.5
 --- !u!1 &1261919158
 GameObject:
   m_ObjectHideFlags: 0
