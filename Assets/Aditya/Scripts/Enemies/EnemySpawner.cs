@@ -18,6 +18,7 @@ namespace Aditya.Scripts.Enemies
 
             for (int i = 0; i < spawnCount; i++)
             {
+                // spawns enemy on a random cell
                 Vector2Int cell = allCells[Random.Range(0, allCells.Count)];
 
                 Vector3 spawnPos = new Vector3(cell.x, spawnHeight, cell.y);

@@ -13,18 +13,18 @@ namespace Aditya.Scripts.PlayerController
         private Rigidbody _rb;
         void Start()
         {
+            // locks ad hides the mouse cursor
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             
+            // check if the player has rigidbody component or else it adds it
             if (GetComponent<Rigidbody>() == null)
             {
                 _rb = gameObject.AddComponent<Rigidbody>();
-                print("Rigidbody component added to the player.");
             }
             else
             {
                 _rb = GetComponent<Rigidbody>();
-                print("rb");
             }
         }
         void Update()
@@ -48,14 +48,18 @@ namespace Aditya.Scripts.PlayerController
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 Vector3 origin = transform.position + Vector3.up * 0.1f;
+                
+                //check if the player is grounded
                 if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDistance))
                 {
+                    
                     _rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                    // sudden upwards force to player
                 }
             }
             // mouse look
             float mouseX = Input.GetAxis("Mouse X");
-            _yaw += mouseX * mouseSensitivity;
+            _yaw += mouseX * mouseSensitivity; //mouse yaw movement
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
         }
     }

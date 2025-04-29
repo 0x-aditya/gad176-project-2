@@ -12,6 +12,7 @@ namespace Aditya.Scripts.PlayerController
 
         public void SpawnAtEnds(HashSet<Vector2Int> path)
         {
+            // this script spawns the player and objective at the ends of the path
             if (path == null || path.Count == 0)
             {
                 print("No Path");

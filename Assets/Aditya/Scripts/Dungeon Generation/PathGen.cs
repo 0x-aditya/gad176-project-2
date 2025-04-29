@@ -20,15 +20,17 @@ namespace Aditya.Scripts.Dungeon_Generation
 
         private void Start()
         {
+            // getting components
             _enemySpawner = GetComponent<EnemySpawner>();
             _playerAndObjectiveSpawner = GetComponent<PlayerAndObjectiveSpawner>();
-            MakeNewDungeon();
+            MakeNewDungeon(); // making new dungeon
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
+                // CLear the current dungeon and create a new one
                 ClearDungeon();
                 MakeNewDungeon();
             }
@@ -36,14 +38,14 @@ namespace Aditya.Scripts.Dungeon_Generation
 
         private void MakeNewDungeon()
         {
-            // Choose simple or complex walker
+            // shoose simple or complex walker
             RandomWalk walker = complexity <= 1 
                 ? new RandomWalk(stepSize)
                 : new IterativeRandomWalk(stepSize, complexity);
 
             HashSet<Vector2Int> path = walker.GenerateWalk(startPosition);
 
-            // Spawn floors
+            // spawn floors
             foreach (var cell in path)
             {
                 Vector3 worldPos = new Vector3(cell.x, 0f, cell.y);
@@ -51,7 +53,7 @@ namespace Aditya.Scripts.Dungeon_Generation
                 _instantiatedObjects.Add(floor);
             }
 
-            // Spawn walls around path
+            // spawn walls around path
             var wallPositions = GetWallPositions(path);
             foreach (var cell in wallPositions)
             {
@@ -60,12 +62,12 @@ namespace Aditya.Scripts.Dungeon_Generation
                 _instantiatedObjects.Add(wall);
             }
             
-            // Spawn enemies
+            // spawn enemies
             if (_enemySpawner != null)
             {
                 _enemySpawner.SpawnEnemies(path);
             }
-            // Spawn player and objective
+            // spawn player and objective
             if (_playerAndObjectiveSpawner != null)
             {
                 _playerAndObjectiveSpawner.SpawnAtEnds(path);
@@ -74,6 +76,7 @@ namespace Aditya.Scripts.Dungeon_Generation
 
         private void ClearDungeon()
         {
+            //destroy stored objects
             foreach (var obj in _instantiatedObjects)
             {
                 Destroy(obj);
@@ -83,8 +86,10 @@ namespace Aditya.Scripts.Dungeon_Generation
 
         private HashSet<Vector2Int> GetWallPositions(HashSet<Vector2Int> path)
         {
+            //
             var walls = new HashSet<Vector2Int>();
-
+            
+            //finds the left most and right most position of the path and adds wall
             foreach (var group in path.GroupBy(cell => cell.x))
             {
                 int x = group.Key;
@@ -93,7 +98,8 @@ namespace Aditya.Scripts.Dungeon_Generation
                 walls.Add(new Vector2Int(x, minY - 1));
                 walls.Add(new Vector2Int(x, maxY + 1));
             }
-
+            
+            //finds the top most and bottom most position of the path and adds wall
             foreach (var group in path.GroupBy(cell => cell.y))
             {
                 int y = group.Key;
@@ -103,7 +109,7 @@ namespace Aditya.Scripts.Dungeon_Generation
                 walls.Add(new Vector2Int(maxX + 1, y));
             }
 
-            walls.ExceptWith(path);
+            walls.ExceptWith(path); // remove path positions from walls
             return walls;
         }
     }
