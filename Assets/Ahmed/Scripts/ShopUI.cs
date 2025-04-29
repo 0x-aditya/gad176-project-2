@@ -14,6 +14,9 @@ namespace StealthGame.Shop
         [SerializeField] private Button _itemButtonPrefab;
         [SerializeField] private TMP_Text _currencyText;
 
+        [Header("Interact Prompt")]
+        [SerializeField] private TMP_Text _interactPromptText;
+
         [Header("Purchase Feedback")]
         [SerializeField] private TMP_Text _confirmationText;
         [SerializeField, Tooltip("Seconds before the confirmation message disappears.")]
@@ -25,9 +28,9 @@ namespace StealthGame.Shop
         private bool _isOpen;
         private Coroutine _hideCoroutine;
 
-        /// <summary>
-        /// Called by ShopManager at Start.
-        /// </summary>
+        // Expose for ShopManager
+        public bool IsOpen => _isOpen;
+
         public void Initialize(ShopManager manager, BaseItem[] catalogue, PlayerController player)
         {
             _shopManager = manager;
@@ -37,15 +40,12 @@ namespace StealthGame.Shop
             PopulateShop();
             UpdateCurrencyDisplay(_player.Currency);
 
-            // Hide UI by default
+            // Hide everything initially
             _shopPanel.SetActive(false);
-            if (_confirmationText != null)
-                _confirmationText.gameObject.SetActive(false);
+            _confirmationText?.gameObject.SetActive(false);
+            _interactPromptText?.gameObject.SetActive(false);
         }
 
-        /// <summary>
-        /// Clears old buttons and instantiates one per catalogue item.
-        /// </summary>
         private void PopulateShop()
         {
             foreach (Transform child in _itemListContainer)
@@ -55,48 +55,55 @@ namespace StealthGame.Shop
             {
                 var btn = Instantiate(_itemButtonPrefab, _itemListContainer);
                 var label = btn.GetComponentInChildren<TMP_Text>();
-                if (label != null)
-                    label.text = $"{item.DisplayName} ({item.Price:F0})";
+                if (label != null) label.text = $"{item.DisplayName} ({item.Price:F0})";
+                else Debug.LogError("[ShopUI] No TMP_Text on ItemButton!");
 
-                // Instrumented listener:
-                btn.onClick.AddListener(() =>
-                {
-                    Debug.Log($"[ShopUI] Button for '{item.DisplayName}' clicked");
+                btn.onClick.AddListener(() => {
+                    Debug.Log($"[ShopUI] Button for {item.DisplayName} clicked");
                     _shopManager.BuyItem(item);
                 });
             }
         }
 
-        /// <summary>
-        /// Toggle shop panel on/off.
-        /// </summary>
         public void ToggleShop()
         {
             _isOpen = !_isOpen;
             _shopPanel.SetActive(_isOpen);
+
+            // Cursor
+            Cursor.visible = _isOpen;
+            Cursor.lockState = _isOpen
+                ? CursorLockMode.None
+                : CursorLockMode.Locked;
+
+            // Hide prompt when shop is open
+            _interactPromptText?.gameObject.SetActive(false);
+
+            // Optionally disable player movement here...
         }
 
-        /// <summary>
-        /// Update the currency display (top of panel).
-        /// </summary>
         public void UpdateCurrencyDisplay(float amount)
         {
             if (_currencyText != null)
                 _currencyText.text = $"Currency: {amount:F0}";
         }
 
-        /// <summary>
-        /// Show a temporary “You purchased X!” message.
-        /// </summary>
-        public void ShowConfirmation(string message)
+        /// <summary> Show or hide the “Press E…” prompt. </summary>
+        public void ShowInteractPrompt(bool show)
+        {
+            if (_interactPromptText != null && !_isOpen)
+                _interactPromptText.gameObject.SetActive(show);
+        }
+
+        /// <summary> Show a generic purchase confirmation. </summary>
+        public void ShowConfirmation()
         {
             if (_confirmationText == null) return;
 
-            _confirmationText.text = message;
+            _confirmationText.text = "You have purchased an item!";
             _confirmationText.gameObject.SetActive(true);
 
-            if (_hideCoroutine != null)
-                StopCoroutine(_hideCoroutine);
+            if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
             _hideCoroutine = StartCoroutine(HideAfterDelay());
         }
 

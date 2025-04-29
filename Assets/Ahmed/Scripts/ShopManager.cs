@@ -31,23 +31,17 @@ namespace StealthGame.Shop
 
         private void Update()
         {
-            // 1) Check for player in range
-            Collider[] hits = Physics.OverlapSphere(transform.position, _interactRadius);
-            bool playerNearby = false;
-            foreach (var c in hits)
-                if (c.GetComponent<PlayerController>() != null)
-                    playerNearby = true;
+            // detect player
+            bool playerNearby = Physics
+                .OverlapSphere(transform.position, _interactRadius)
+                .Any(c => c.GetComponentInParent<PlayerController>() != null);
 
-            if (playerNearby)
-            {
-                Debug.Log("[ShopManager] Player is within interact radius.");
-                // 2) Check for keypress
-                if (Input.GetKeyDown(_interactKey))
-                {
-                    Debug.Log("[ShopManager] Interact key pressed. Attempting to ToggleShop().");
-                    _ui.ToggleShop();
-                }
-            }
+            // show/hide the “Press E…” prompt
+            _ui.ShowInteractPrompt(playerNearby);
+
+            // open shop
+            if (playerNearby && Input.GetKeyDown(_interactKey))
+                _ui.ToggleShop();
         }
         private void OnDrawGizmosSelected()
         {
@@ -61,14 +55,20 @@ namespace StealthGame.Shop
         public void BuyItem(BaseItem item)
         {
             if (item == null) return;
-            if (_player.SpendCurrency(item.Price) && _player.Inventory.AddItem(item))
+
+            bool success = _player.SpendCurrency(item.Price)
+                        && _player.Inventory.AddItem(item);
+
+            if (success)
             {
                 Debug.Log($"[Shop] Bought {item.DisplayName} for {item.Price}");
                 _ui.UpdateCurrencyDisplay(_player.Currency);
+                _ui.ShowConfirmation();
             }
             else
             {
-                Debug.LogWarning($"[Shop] Could not buy {item.DisplayName}");
+                Debug.LogWarning($"[Shop] Failed to buy {item.DisplayName}");
+                // you could show a “Not enough currency” message here
             }
         }
     }
